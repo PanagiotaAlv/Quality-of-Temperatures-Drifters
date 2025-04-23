@@ -156,8 +156,9 @@ for station_id in stList:
     output_path = os.path.join(output_folder, f"{fnamepre}_{station_id}.png")
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"Saved: {output_path}")
-   
-    plt.clf()
+
+    # Close plt before making a new figure
+    plt.close()
 
 
 
