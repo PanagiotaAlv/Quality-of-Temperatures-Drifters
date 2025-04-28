@@ -8,6 +8,7 @@ from matplotlib import pylab as plt
 import matplotlib.lines as mlines
 import sys
 import os
+import matplotlib.dates as mdates
 import pandas as pd
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
@@ -48,8 +49,21 @@ ist = ds.variables['surface_temperature'].values[:, 2, 2]
 lon = ds.variables['longitude'].values  
 lat = ds.variables['latitude'].values  
 
-time_df = pd.DataFrame({"year": years, "month": months, "day": days, "hour": hours, "minute": minutes})
-time = pd.to_datetime(time_df)
+
+hours_fixed = np.where((hours >= 0) & (hours < 24), hours, 0)
+minutes_fixed = np.where((minutes >= 0) & (minutes < 60), minutes, 0)
+
+# Create time dataframe
+time_df = pd.DataFrame({
+    "year": years,
+    "month": months,
+    "day": days,
+    "hour": hours_fixed,
+    "minute": minutes_fixed
+})
+
+time = pd.to_datetime(time_df, errors='coerce')
+
 
 # Define the choises 
 if temp_var == 'ist':
@@ -78,7 +92,12 @@ for station_id in stList:
     print(f"Processing station {station_id}...")
 
     # Select valid data
-    subset = np.logical_and(stID == station_id, abs(diff) < 299)
+    subset = np.logical_and.reduce((
+    stID == station_id,
+    abs(diff) < 299,
+    time.notna()
+))
+
 
     if not np.any(subset):
         print(f"Skipping station {station_id} (no valid data).")
@@ -90,7 +109,14 @@ for station_id in stList:
     valid_time = time[subset]
     valid_tw = tw[subset]
     valid_diff = diff[subset]
+    
+    
+    # Calculate the statistics
+    diff_mean =valid_diff.mean()
+    diff_std = valid_diff.std()
+    num_obs = len(valid_lat)
 
+    
    # Print data for the specific station if -s flag is used
     if station_id_requested:
         print(f"Printing data for station {station_id}:")
@@ -130,21 +156,30 @@ for station_id in stList:
     # Scatter plot to show individual points
     sc1 = ax1.scatter(valid_lon, valid_lat, c=valid_diff, cmap='coolwarm', edgecolor='k', s=50, alpha=0.75)
 
+
     # Add colorbar for SST difference
     cbar1 = fig.colorbar(sc1, ax=ax1, orientation='vertical', pad=0.02)
-    #cbar1.set_label("SST Difference (°C)")
 
-    ax1.text(0.5, -0.18, f"Lon: [{xmin:.2f}, {xmax:.2f}] | Lat: [{ymin:.2f}, {ymax:.2f}]",
-             ha='center', va='baseline', transform=ax1.transAxes, fontsize=8, bbox=dict(facecolor='white', alpha=0.5))
+
+    # Add a box with statistics below the map nicely
+    stats_text = (
+        f"Lon: [{xmin:.2f}, {xmax:.2f}]   Lat: [{ymin:.2f}, {ymax:.2f}]\n"
+        f"Mean diff: {diff_mean:.2f} K  Std diff: {diff_std:.2f}\n"
+        f"Num obs: {num_obs}"
+    )
+    ax1.text(0.5, -0.25, stats_text,
+             ha='center', va='top', transform=ax1.transAxes,
+             fontsize=8, bbox=dict(facecolor='white', alpha=0.8, edgecolor='black'))
+
     
-    ax2.set_title(f"{title1} {station_id}")
+    ax2.set_title(f"{title1} {station_id}", fontsize=14)
     ax2.set_xlabel("Date")
     ax2.set_ylabel(label)
+    ax2.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    ax2.xaxis.set_major_locator(mdates.AutoDateLocator())
     ax2.tick_params(axis='x', rotation=45)
     
-    
-
-    # Scatter plot for SST difference over time
+    # Scatter plot for SST/IST difference over time
     sc2 = ax2.scatter(valid_time, valid_diff, c=valid_tw, cmap='coolwarm', edgecolor='k', alpha=0.75)
     ax2.axhline(0, color='red', linestyle='--', linewidth=1)
     
@@ -152,13 +187,14 @@ for station_id in stList:
     cbar2 = fig.colorbar(sc2, ax=ax2)
     cbar2.set_label("Tw [K]")
 
+    
+
     # Save plot
     output_path = os.path.join(output_folder, f"{fnamepre}_{station_id}.png")
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"Saved: {output_path}")
-
-    # Close plt before making a new figure
-    plt.close()
+   
+    plt.clf()
 
 
 
