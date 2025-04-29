@@ -92,12 +92,7 @@ for station_id in stList:
     print(f"Processing station {station_id}...")
 
     # Select valid data
-    subset = np.logical_and.reduce((
-    stID == station_id,
-    abs(diff) < 299,
-    time.notna()
-))
-
+    subset = np.logical_and.reduce((stID == station_id,abs(diff) < 299,time.notna()))
 
     if not np.any(subset):
         print(f"Skipping station {station_id} (no valid data).")
@@ -164,8 +159,7 @@ for station_id in stList:
     # Add a box with statistics below the map nicely
     stats_text = (
         f"Lon: [{xmin:.2f}, {xmax:.2f}]   Lat: [{ymin:.2f}, {ymax:.2f}]\n"
-        f"Mean diff: {diff_mean:.2f} K  Std diff: {diff_std:.2f}\n"
-        f"Num obs: {num_obs}"
+        f"Mean diff: {diff_mean:.2f}  Std: {diff_std:.2f}  Num: {num_obs}"
     )
     ax1.text(0.5, -0.25, stats_text,
              ha='center', va='top', transform=ax1.transAxes,
@@ -187,16 +181,11 @@ for station_id in stList:
     cbar2 = fig.colorbar(sc2, ax=ax2)
     cbar2.set_label("Tw [K]")
 
-    
 
     # Save plot
     output_path = os.path.join(output_folder, f"{fnamepre}_{station_id}.png")
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"Saved: {output_path}")
    
-    plt.clf()
-
-
-
-            
-       
+    # close plt before making a new figure
+    plt.close()
