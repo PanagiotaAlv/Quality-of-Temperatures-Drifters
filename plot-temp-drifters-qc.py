@@ -127,6 +127,7 @@ for station_id in stList:
     plt.subplots_adjust(left=0.1, right=0.9, bottom=0.1, top=0.9, wspace=0.2, hspace=0.4)
     
     ax1 = fig.add_subplot(121, projection=ccrs.PlateCarree())  # Left subplot
+    ax1.set_aspect('2')
     ax2 = fig.add_subplot(122)  # Right subplot
     
     # Set up the left subplot: Drifter Track on Map
@@ -174,12 +175,13 @@ for station_id in stList:
     ax2.tick_params(axis='x', rotation=45)
     
     # Scatter plot for SST/IST difference over time
-    sc2 = ax2.scatter(valid_time, valid_diff, c=valid_tw, cmap='coolwarm', edgecolor='k', alpha=0.75)
+    sc2 = ax2.scatter(valid_time, valid_diff, c=valid_diff, cmap='coolwarm', edgecolor='k', alpha=0.75)
     ax2.axhline(0, color='red', linestyle='--', linewidth=1)
     
     # Add colorbar for Tw
     cbar2 = fig.colorbar(sc2, ax=ax2)
-    cbar2.set_label("Tw [K]")
+    cbar2.set_label("Difference [°C]")
+ 
 
 
     # Save plot
@@ -187,5 +189,14 @@ for station_id in stList:
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"Saved: {output_path}")
    
+<<<<<<< HEAD
     # close plt before making a new figure
     plt.close()
+=======
+    # Close plt before making a new figure
+    plt.close()
+
+
+            
+       
+>>>>>>> bdad4e8 (changed the ratio of ax1 and the colorbar -instead Tw, now I have valid diff)
