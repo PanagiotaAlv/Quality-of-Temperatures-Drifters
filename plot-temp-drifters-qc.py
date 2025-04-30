@@ -189,14 +189,7 @@ for station_id in stList:
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"Saved: {output_path}")
    
-<<<<<<< HEAD
-    # close plt before making a new figure
-    plt.close()
-=======
+
     # Close plt before making a new figure
     plt.close()
 
-
-            
-       
->>>>>>> bdad4e8 (changed the ratio of ax1 and the colorbar -instead Tw, now I have valid diff)
