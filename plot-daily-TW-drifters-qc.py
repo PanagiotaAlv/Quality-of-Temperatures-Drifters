@@ -65,7 +65,7 @@ for filename in nc_files:
         
 
 
-    # Find unique platform IDs
+# Find unique platform IDs
 stList = np.unique(platform_id)
 print(f"Total number of stations: {len(stList)}")
 
@@ -76,13 +76,6 @@ if station_id_requested:
 for station_id in stList:
     print(f"Processing station {station_id}...")
 
-
-    # Filter by station ID
-    subset = platform_id == station_id
-    if not np.any(subset):
-        print(f"Skipping station {station_id} (no data found).")
-        continue
-    
     
     # Filter by station ID
     subset = platform_id == station_id
