@@ -39,7 +39,7 @@ fnamepre = "Tw_trackmap"
 
 
     
-# Read and combine all NetCDF files in the directory
+   # Read and combine all NetCDF files in the directory
 nc_files = sorted(glob(os.path.join(target_dir, "*.nc")))
 if not nc_files:
     print("No NetCDF files found.")
@@ -48,7 +48,13 @@ if not nc_files:
 print(f"Reading {len(nc_files)} NetCDF files...")
 
 # Use xarray to open all files as one dataset
-ds = xr.open_mfdataset(nc_files, combine='by_coords', preprocess=lambda ds: ds.sortby('time'))
+ds = xr.open_mfdataset(
+    nc_files,
+    combine='by_coords',
+    preprocess=lambda ds: ds.sortby('time')
+)
+
+
 
 # Read variables from the file
 time = ds['time'].values
@@ -59,24 +65,45 @@ tw = ds['water_temperature'].values  # Expecting [n_obs, depth]
 cTw = ds['climatology_water_temperature'].values
 quality_level = ds['quality_level'].values
 
+
+# Filter by user-defined geographical region
+geo_mask = (
+    (lat >= lat_user[0]) & (lat <= lat_user[1]) &
+    (lon >= lon_user[0]) & (lon <= lon_user[1])
+)
+
+# Apply the geographical mask to all relevant variables
+lat = lat[geo_mask]
+lon = lon[geo_mask]
+time = time[geo_mask]
+tw = tw[geo_mask]
+cTw = cTw[geo_mask]
+platform_id = platform_id[geo_mask]
+quality_level = quality_level[geo_mask]
+
+
 # Use only surface level (depth index 0)
 if tw.ndim > 1:
     tw = tw[:, 0]
     
-
-
-# Find unique platform IDs
+    # Find unique platform IDs
 stList = np.unique(platform_id)
 print(f"Total number of stations: {len(stList)}")
 
 if station_id_requested:
     stList = [station_id_requested]
-    
-    
+    print(station_id_requested)
 # Process each station
 for station_id in stList:
     print(f"Processing station {station_id}...")
 
+
+    # Filter by station ID
+    subset = platform_id == station_id
+    if not np.any(subset):
+        print(f"Skipping station {station_id} (no data found).")
+        continue
+    
     
     # Filter by station ID
     subset = platform_id == station_id
@@ -135,7 +162,7 @@ for station_id in stList:
                       edgecolor='k', s=50, alpha=0.75)
     cbar1 = fig.colorbar(sc1, ax=ax1, orientation='vertical', pad=0.02)
     cbar1.set_label("Tw [°C]")
-     
+    
     # Add a box with statistics below the map nicely
     stats_text = (
         f"Lon: [{xmin:.2f}, {xmax:.2f}]   Lat: [{ymin:.2f}, {ymax:.2f}]\n"
