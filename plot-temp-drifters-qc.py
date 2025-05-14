@@ -175,13 +175,13 @@ for station_id in stList:
     ax2.tick_params(axis='x', rotation=45)
     
     # Scatter plot for SST/IST difference over time
-    sc2 = ax2.scatter(valid_time, valid_diff, c=valid_diff, cmap='coolwarm', edgecolor='k', alpha=0.75)
+    sc2 = ax2.scatter(valid_time, valid_diff, c=valid_tw, cmap='coolwarm', edgecolor='k', alpha=0.75)
     ax2.axhline(0, color='red', linestyle='--', linewidth=1)
     
     # Add colorbar for Tw
     cbar2 = fig.colorbar(sc2, ax=ax2)
-    cbar2.set_label("Difference [°C]")
- 
+    cbar2.set_label("In situ temperature [°C]")
+
 
 
     # Save plot
