@@ -135,7 +135,7 @@ for station_id in stList:
                       edgecolor='k', s=50, alpha=0.75)
     cbar1 = fig.colorbar(sc1, ax=ax1, orientation='vertical', pad=0.02)
     cbar1.set_label("Tw [°C]")
-    
+     
     # Add a box with statistics below the map nicely
     stats_text = (
         f"Lon: [{xmin:.2f}, {xmax:.2f}]   Lat: [{ymin:.2f}, {ymax:.2f}]\n"
