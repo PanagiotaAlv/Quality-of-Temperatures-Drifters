@@ -1,18 +1,14 @@
 from netCDF4 import Dataset
 from datetime import datetime, timedelta
-from copy import copy
 import re
 from glob import glob
 import numpy as np
 import xarray as xr
 from matplotlib import pylab as plt
-import matplotlib.lines as mlines
-import sys
 import os
 import matplotlib.dates as mdates
 import pandas as pd
 import cartopy.crs as ccrs
-import cartopy.feature as cfeature
 from matplotlib.colors import Normalize
 from netCDF4 import num2date
 from pathlib import Path
@@ -48,23 +44,35 @@ time = ds['time'].values
 lat = ds['lat'].values
 lon = ds['lon'].values
 platform_id = ds['platform_id'].values.astype(str)
-tw = ds['water_temperature'].values
+tw_all = ds['water_temperature'].values
 cTw = ds['climatology_water_temperature'].values
 quality_level = ds['quality_level'].values
 
-# Apply geo mask 
+#Apply geo mask which represents the input lat & lon
 geo_mask = (
     (lat >= lat_user[0]) & (lat <= lat_user[1]) &
     (lon >= lon_user[0]) & (lon <= lon_user[1])
 )
 lat, lon, time = lat[geo_mask], lon[geo_mask], time[geo_mask]
-tw, cTw, platform_id = tw[geo_mask], cTw[geo_mask], platform_id[geo_mask]
+tw_all, cTw, platform_id = tw_all[geo_mask], cTw[geo_mask], platform_id[geo_mask]
 
-# Surface level 
-if tw.ndim > 1:
-    tw = tw[:, 0]
 
-# Station list 
+# Build a subset where it keeps the data from column 1 & 2 from the variable
+tw0 = tw_all[:,0]
+tw1 = tw_all[:,1]
+sub0 = (tw0 > -40) & np.isnan(tw1)
+sub1 = (tw1 > -40) & np.isnan(tw0)
+
+tw = tw_all[:,0]
+tw[sub1] = tw1[sub1]
+
+# Printing the variables to check the data
+print(tw_all)
+print(tw0)
+print(tw1)
+print(tw)
+
+# Station list ¦ Taking the unique stations
 stList = np.unique(platform_id)
 if station_id_requested:
     stList = [station_id_requested]
@@ -76,12 +84,17 @@ for station_id in stList:
     if not np.any(subset):
         print(f"Skipping station {station_id} (no data found).")
         continue
-
+    
+    # Use subset to keep only unique stations
     valid_lon = lon[subset]
     valid_lat = lat[subset]
     valid_time = time[subset]
     valid_tw = tw[subset]
     valid_cTw = cTw[subset]
+
+
+    print(valid_tw)
+
 
     # Mask out only NaN Tw values 
     not_nan = ~np.isnan(valid_tw)
@@ -127,7 +140,7 @@ for station_id in stList:
                  color=plt.cm.coolwarm((valid_tw[i] + 5) / 10),
                  linewidth=2, alpha=0.8)
 
-    # Scatter plot
+    # Scatter plot regarding the data of Climatology
     if has_valid_cTw:
         sc1 = ax1.scatter(valid_lon, valid_lat, c=valid_tw, cmap='coolwarm',
                           edgecolor='k', s=50, alpha=0.75)
@@ -156,7 +169,8 @@ for station_id in stList:
     ax2.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
     ax2.xaxis.set_major_locator(mdates.AutoDateLocator())
     ax2.tick_params(axis='x', rotation=45)
-
+    
+    # Plot regarding the data of Climatology
     if has_valid_cTw:
         sc2 = ax2.scatter(pd.to_datetime(valid_time), valid_tw, c=valid_diff,
                           cmap='coolwarm', edgecolor='k', alpha=0.75)
