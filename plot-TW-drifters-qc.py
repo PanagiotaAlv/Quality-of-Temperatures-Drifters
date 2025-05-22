@@ -150,18 +150,12 @@ for station_id in stList:
                  linewidth=2, alpha=0.8)
 
     # Scatter plot of individual observations
-    if has_valid_cTw:
-        sc1 = ax1.scatter(valid_lon, valid_lat, c=valid_tw, cmap='coolwarm',
-                          edgecolor='k', s=50, alpha=0.75)
-        cbar1 = fig.colorbar(sc1, ax=ax1, orientation='vertical', pad=0.02)
-        cbar1.set_label("Tw [°C]")
-    else:
-        sc1 = ax1.scatter(valid_lon, valid_lat, color='grey',
-                          edgecolor='k', s=50, alpha=0.75)
-        ax1.text(0.5, -0.15, "Climatology missing, Tw only (grey dots)",
-                 ha='center', va='top', transform=ax1.transAxes,
-                 fontsize=8, bbox=dict(facecolor='white', alpha=0.8, edgecolor='black'))
-
+    sc1 = ax1.scatter(valid_lon, valid_lat, c=valid_tw, cmap='coolwarm',
+                      edgecolor='k', s=50, alpha=0.75)
+    cbar1 = fig.colorbar(sc1, ax=ax1, orientation='vertical', pad=0.02)
+    cbar1.set_label("Tw [°C]")
+     
+    
     # Display stats on map
     stats_text = (
         f"Lon: [{xmin:.2f}, {xmax:.2f}]   Lat: [{ymin:.2f}, {ymax:.2f}]\n"
