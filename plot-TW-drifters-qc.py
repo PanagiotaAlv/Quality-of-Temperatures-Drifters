@@ -61,11 +61,15 @@ geo_mask = (
 lat, lon, time = lat[geo_mask], lon[geo_mask], time[geo_mask]
 tw_all, cTw, platform_id = tw_all[geo_mask], cTw[geo_mask], platform_id[geo_mask]
 
-# Handle twin columns of temperature data by combining valid values from both
+# Use temperature data from variable water_temperature that has 5 columns for 5 different depths.
+# Only use data from the two first columns and combine them. Give priority to 1st column and then
+# add data from 2nd column where 1st column is empty.
 tw0 = tw_all[:, 0]
 tw1 = tw_all[:, 1]
-sub0 = (tw0 > -40) & np.isnan(tw1)
+#sub0 = (tw0 > -40) & np.isnan(tw1) # Not used at present
 sub1 = (tw1 > -40) & np.isnan(tw0)
+
+# Make new variable tw based on 1st column of tw_all, and add data from 2nd column
 tw = tw_all[:, 0]
 tw[sub1] = tw1[sub1]
 
@@ -176,6 +180,7 @@ for station_id in stList:
     ax2.tick_params(axis='x', rotation=45)
 
     # Scatter plot of Tw over time, colored by Tw - cTw difference
+    # If cTw is defined, give point the color depending on cTw. Else, plot as gray.
     if has_valid_cTw:
         sc2 = ax2.scatter(pd.to_datetime(valid_time), valid_tw, c=valid_diff,
                           cmap='coolwarm', edgecolor='k', alpha=0.75)
